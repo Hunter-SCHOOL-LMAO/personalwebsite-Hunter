@@ -115,6 +115,145 @@
         background-color: #636B2F;
       }
 
+      /* Camera Sensor Widget */
+      .widget-container {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        align-items: center;
+        margin-top: 30px;
+      }
+
+      .sensor-row {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .photon-box {
+        position: relative;
+        width: 500px;
+        height: 400px;
+        background-color: #f5f5f5;
+        border: 3px solid #212315;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      }
+
+      .sensor-line {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background-color: #ff4444;
+        z-index: 10;
+      }
+
+      .aperture-blade {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 50px;
+        background-color: #333;
+        z-index: 5;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      }
+
+      .aperture-blade.left {
+        left: 0;
+      }
+
+      .aperture-blade.right {
+        right: 0;
+      }
+
+      .photon {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+      }
+
+
+      .sensor-output {
+        width: 200px;
+        height: 200px;
+        border: 3px solid #212315;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #212315;
+      }
+
+      .sensor-stats {
+        background-color: #fff;
+        padding: 15px;
+        border: 3px solid #212315;
+        width: 200px;
+        font-size: 14px;
+      }
+
+      .sensor-stats h3 {
+        margin-bottom: 10px;
+        color: #212315;
+        font-size: 16px;
+      }
+
+      .sensor-stats p {
+        margin: 5px 0;
+        font-size: 14px;
+        text-align: left;
+      }
+
+      .widget-controls {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .widget-btn {
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #212315;
+        color: #eceee2;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .widget-btn:hover {
+        background-color: #333;
+      }
+
+      .aperture-control {
+        background-color: #fff;
+        padding: 15px;
+        border: 3px solid #212315;
+        width: 200px;
+      }
+
+      .aperture-control h3 {
+        margin-bottom: 10px;
+        color: #212315;
+        font-size: 16px;
+      }
+
+      .aperture-slider {
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      .aperture-value {
+        font-size: 14px;
+        color: #212315;
+        text-align: center;
+        margin-top: 8px;
+      }
+
       /* Responsive Design */
       @media (max-width: 768px) {
         nav ul {
@@ -180,6 +319,38 @@
       <section id="widgets">
         <h1>Widgets</h1>
         <p>Explore interactive widgets and tools. Discover useful features and functionality that enhance your experience.</p>
+        
+        <div class="widget-container">
+          <!-- Sensor displays at top -->
+          <div class="sensor-row">
+            <div class="sensor-output" id="sensorOutput" style="background-color: rgb(128, 128, 128);">
+              Average Color
+            </div>
+            <div class="sensor-stats">
+              <h3>Sensor Data</h3>
+              <p>Photons detected: <span id="photonCount">0</span></p>
+              <p>RGB: <span id="rgbValue">128, 128, 128</span></p>
+            </div>
+            <div class="aperture-control">
+              <h3>Aperture</h3>
+              <input type="range" min="200" max="600" value="300" class="aperture-slider" id="apertureSlider" oninput="adjustAperture(this.value)">
+              <div class="aperture-value" id="apertureValue">f/2.8 (500px)</div>
+            </div>
+          </div>
+          
+          <!-- Photon box at bottom -->
+          <div>
+            <div class="photon-box" id="photonBox">
+              <div class="aperture-blade left" id="apertureLeft"></div>
+              <div class="aperture-blade right" id="apertureRight"></div>
+              <div class="sensor-line"></div>
+            </div>
+            <div class="widget-controls">
+              <button class="widget-btn" onclick="resetSensor()">Reset</button>
+              <button class="widget-btn" onclick="addPhotons(5)">Add Photons</button>
+            </div>
+          </div>
+        </div>
       </section>
     </main>
 
@@ -226,6 +397,251 @@
           }
         });
       });
+
+      // Camera Sensor Widget
+      const photonBox = document.getElementById('photonBox');
+      const sensorOutput = document.getElementById('sensorOutput');
+      const photonCountDisplay = document.getElementById('photonCount');
+      const rgbValueDisplay = document.getElementById('rgbValue');
+      const apertureValueDisplay = document.getElementById('apertureValue');
+      const apertureLeft = document.getElementById('apertureLeft');
+      const apertureRight = document.getElementById('apertureRight');
+      
+      let photons = [];
+      let detectedPhotons = [];
+      let animationId = null;
+      const boxWidth = 600;
+      let apertureWidth = 500; // Gap between aperture blades (starts at 500px)
+      let apertureLeftEdge = 0; // Left edge of the opening
+      let apertureRightEdge = 600; // Right edge of the opening
+
+      class Photon {
+        constructor() {
+          this.radius = Math.random() * 8 + 5; // 5-13px radius
+          this.x = Math.random() * (boxWidth - this.radius * 2) + this.radius;
+          this.y = Math.random() * (200 - this.radius * 2) + this.radius; // Start in upper half
+          this.vx = (Math.random() - 0.5) * 4; // Velocity x
+          this.vy = (Math.random() - 0.5) * 4; // Velocity y
+          
+          // Random color with varying brightness
+          this.r = Math.floor(Math.random() * 256);
+          this.g = Math.floor(Math.random() * 256);
+          this.b = Math.floor(Math.random() * 256);
+          
+          // Brightness multiplier (0.3 to 1.0)
+          this.brightness = Math.random() * 0.9 + 0.1;
+          
+          // Apply brightness to colors
+          this.displayR = Math.floor(this.r * this.brightness);
+          this.displayG = Math.floor(this.g * this.brightness);
+          this.displayB = Math.floor(this.b * this.brightness);
+          
+          // Create DOM element
+          this.element = document.createElement('div');
+          this.element.className = 'photon';
+          this.element.style.width = this.radius * 2 + 'px';
+          this.element.style.height = this.radius * 2 + 'px';
+          this.element.style.backgroundColor = `rgb(${this.displayR}, ${this.displayG}, ${this.displayB})`;
+          this.element.style.boxShadow = `0 0 ${this.radius}px rgba(${this.displayR}, ${this.displayG}, ${this.displayB}, 0.6)`;
+          photonBox.appendChild(this.element);
+        }
+
+        update() {
+          // Update position
+          this.x += this.vx;
+          this.y += this.vy;
+
+          // Aperture blade dimensions (50px tall, centered vertically)
+          const bladeTop = 175;
+          const bladeBottom = 225;
+
+          // ========== WALL COLLISIONS (Box boundaries) ==========
+          // Left wall
+          if (this.x - this.radius < 0) {
+            this.vx = Math.abs(this.vx);
+            this.x = this.radius;
+          }
+
+          // Right wall
+          if (this.x + this.radius > boxWidth) {
+            this.vx = -Math.abs(this.vx);
+            this.x = boxWidth - this.radius;
+          }
+
+          // Top wall
+          if (this.y - this.radius < 0) {
+            this.vy = Math.abs(this.vy);
+            this.y = this.radius;
+          }
+
+          // Bottom wall / Sensor
+          if (this.y + this.radius > 395) {
+            this.vy = -Math.abs(this.vy);
+            this.y = 395 - this.radius;
+            
+            // Only register sensor hit if photon is within aperture opening
+            if (this.x >= apertureLeftEdge && this.x <= apertureRightEdge) {
+              this.hitSensor();
+            }
+          }
+
+          // ========== LEFT APERTURE BLADE COLLISION ==========
+          // Left blade occupies: x=[0, apertureLeftEdge], y=[bladeTop, bladeBottom]
+          // Check if photon is in the vertical range of the blade
+          if (this.y + this.radius > bladeTop && this.y - this.radius < bladeBottom) {
+            // Check collision with right edge of left blade (the inner edge)
+            if (this.x - this.radius < apertureLeftEdge && this.x > apertureLeftEdge) {
+              // Coming from the right, hitting the inner edge
+              this.vx = Math.abs(this.vx);
+              this.x = apertureLeftEdge + this.radius;
+            }
+          }
+
+          // Check if photon is in the horizontal range of left blade
+          if (this.x - this.radius < apertureLeftEdge && this.x + this.radius > 0) {
+            // Top edge collision (coming from below)
+            if (this.y - this.radius < bladeTop && this.y > bladeTop) {
+              this.vy = -Math.abs(this.vy);
+              this.y = bladeTop + this.radius;
+            }
+            
+            // Bottom edge collision (coming from above)
+            if (this.y + this.radius > bladeBottom && this.y < bladeBottom) {
+              this.vy = Math.abs(this.vy);
+              this.y = bladeBottom - this.radius;
+            }
+          }
+
+          // ========== RIGHT APERTURE BLADE COLLISION ==========
+          // Right blade occupies: x=[apertureRightEdge, boxWidth], y=[bladeTop, bladeBottom]
+          // Check if photon is in the vertical range of the blade
+          if (this.y + this.radius > bladeTop && this.y - this.radius < bladeBottom) {
+            // Check collision with left edge of right blade (the inner edge)
+            if (this.x + this.radius > apertureRightEdge && this.x < apertureRightEdge) {
+              // Coming from the left, hitting the inner edge
+              this.vx = -Math.abs(this.vx);
+              this.x = apertureRightEdge - this.radius;
+            }
+          }
+
+          // Check if photon is in the horizontal range of right blade
+          if (this.x + this.radius > apertureRightEdge && this.x - this.radius < boxWidth) {
+            // Top edge collision (coming from below)
+            if (this.y - this.radius < bladeTop && this.y > bladeTop) {
+              this.vy = -Math.abs(this.vy);
+              this.y = bladeTop + this.radius;
+            }
+            
+            // Bottom edge collision (coming from above)
+            if (this.y + this.radius > bladeBottom && this.y < bladeBottom) {
+              this.vy = Math.abs(this.vy);
+              this.y = bladeBottom - this.radius;
+            }
+          }
+
+          // Update DOM position
+          this.element.style.left = (this.x - this.radius) + 'px';
+          this.element.style.top = (this.y - this.radius) + 'px';
+        }
+
+        hitSensor() {
+          // Record this photon's color when it hits the sensor
+          detectedPhotons.push({
+            r: this.displayR,
+            g: this.displayG,
+            b: this.displayB
+          });
+          updateSensorDisplay();
+        }
+
+        remove() {
+          this.element.remove();
+        }
+      }
+
+      function addPhotons(count) {
+        for (let i = 0; i < count; i++) {
+          photons.push(new Photon());
+        }
+        if (!animationId) {
+          animate();
+        }
+      }
+
+      function animate() {
+        photons.forEach(photon => photon.update());
+        animationId = requestAnimationFrame(animate);
+      }
+
+      function updateSensorDisplay() {
+        if (detectedPhotons.length === 0) return;
+
+        // Calculate average color
+        let totalR = 0, totalG = 0, totalB = 0;
+        detectedPhotons.forEach(p => {
+          totalR += p.r;
+          totalG += p.g;
+          totalB += p.b;
+        });
+
+        const avgR = Math.floor(totalR / detectedPhotons.length);
+        const avgG = Math.floor(totalG / detectedPhotons.length);
+        const avgB = Math.floor(totalB / detectedPhotons.length);
+
+        // Update display
+        sensorOutput.style.backgroundColor = `rgb(${avgR}, ${avgG}, ${avgB})`;
+        
+        // Update text color for contrast
+        const brightness = (avgR * 299 + avgG * 587 + avgB * 114) / 1000;
+        sensorOutput.style.color = brightness > 128 ? '#212315' : '#eceee2';
+        
+        photonCountDisplay.textContent = detectedPhotons.length;
+        rgbValueDisplay.textContent = `${avgR}, ${avgG}, ${avgB}`;
+      }
+
+      function resetSensor() {
+        // Remove all photons
+        photons.forEach(photon => photon.remove());
+        photons = [];
+        detectedPhotons = [];
+        
+        // Cancel animation
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+          animationId = null;
+        }
+
+        // Reset display
+        sensorOutput.style.backgroundColor = 'rgb(128, 128, 128)';
+        sensorOutput.style.color = '#212315';
+        photonCountDisplay.textContent = '0';
+        rgbValueDisplay.textContent = '128, 128, 128';
+      }
+
+      function adjustAperture(sliderValue) {
+        // Reverse the slider: low value = wide aperture, high value = narrow aperture
+        apertureWidth = 800 - parseInt(sliderValue); // 200px to 600px gap
+        
+        // Center the aperture opening
+        apertureLeftEdge = (boxWidth - apertureWidth) / 2;
+        apertureRightEdge = apertureLeftEdge + apertureWidth;
+        
+        // Update blade widths
+        const bladeWidth = (boxWidth - apertureWidth) / 2;
+        apertureLeft.style.width = bladeWidth + 'px';
+        apertureRight.style.width = bladeWidth + 'px';
+        
+        // Calculate f-stop (inverse relationship - wider aperture = smaller f-number)
+        // Map 200-600px to f/16-f/1.4 (inverse scale)
+        const fStop = (16 - ((apertureWidth - 200) / 400) * 14.6).toFixed(1);
+        apertureValueDisplay.textContent = `f/${fStop} (${apertureWidth}px)`;
+      }
+
+      // Initialize aperture on load
+      adjustAperture(300);
+
+      // Start with some initial photons
+      addPhotons(10);
     </script>
   </body>
 </html>
