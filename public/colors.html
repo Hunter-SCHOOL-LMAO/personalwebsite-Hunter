@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Colors Database - Hunter's Portfolio</title>
+    
+    <style media="screen">
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #212315;
+        background-color: #636B2F;
+      }
+
+      /* Header Navigation */
+      header {
+        background-color: #212315;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      }
+
+      nav {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0 20px;
+      }
+
+      nav ul {
+        display: flex;
+        list-style: none;
+        gap: 0;
+      }
+
+      nav ul li a {
+        display: block;
+        color: #eceee2;
+        text-decoration: none;
+        padding: 20px 30px;
+        font-size: 16px;
+        font-weight: 500;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      nav ul li a:hover {
+        background-color: #333;
+        color: #eceee2;
+      }
+
+      nav ul li a.active {
+        background-color: #444;
+      }
+
+      /* Main Content */
+      main {
+        margin-top: 80px;
+        padding: 40px 20px;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        font-size: 48px;
+        margin-bottom: 20px;
+        color: #212315;
+        text-align: center;
+      }
+
+      .intro {
+        font-size: 18px;
+        text-align: center;
+        margin-bottom: 40px;
+        color: #212315;
+      }
+
+      /* Loading state */
+      .loading {
+        text-align: center;
+        font-size: 20px;
+        color: #212315;
+        padding: 40px;
+      }
+
+      /* Colors Grid */
+      .colors-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 25px;
+        padding: 20px 0;
+      }
+
+      .color-card {
+        background: white;
+        border: 3px solid #212315;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .color-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 12px rgba(0,0,0,0.2);
+      }
+
+      .color-preview {
+        width: 100%;
+        height: 150px;
+        border: 2px solid #212315;
+        border-radius: 4px;
+        margin-bottom: 15px;
+      }
+
+      .color-info {
+        color: #212315;
+      }
+
+      .color-info h3 {
+        font-size: 22px;
+        margin-bottom: 10px;
+        color: #212315;
+      }
+
+      .color-info p {
+        font-size: 14px;
+        margin: 5px 0;
+        color: #333;
+      }
+
+      .color-value {
+        font-family: 'Courier New', monospace;
+        background-color: #f5f5f5;
+        padding: 5px 8px;
+        border-radius: 3px;
+        display: inline-block;
+        margin-top: 5px;
+      }
+
+      /* Error message */
+      .error {
+        background-color: #ff4444;
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        margin: 20px 0;
+      }
+
+      /* Empty state */
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #212315;
+      }
+
+      .empty-state h2 {
+        font-size: 32px;
+        margin-bottom: 15px;
+      }
+
+      .empty-state p {
+        font-size: 18px;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        nav ul {
+          flex-wrap: wrap;
+        }
+
+        nav ul li a {
+          padding: 15px 20px;
+          font-size: 14px;
+        }
+
+        h1 {
+          font-size: 36px;
+        }
+
+        .colors-grid {
+          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+          gap: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation Header -->
+    <header>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="index.html#about">About</a></li>
+          <li><a href="index.html#projects">Projects</a></li>
+          <li><a href="index.html#art">Art</a></li>
+          <li><a href="index.html#widgets">Widgets</a></li>
+          <li><a href="colors.html" class="active">Colors</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+      <div class="container">
+        <h1>Colors Database</h1>
+        <p class="intro">Displaying colors from Firestore collection</p>
+        
+        <div id="loading" class="loading">Loading colors...</div>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="colorsGrid" class="colors-grid"></div>
+        <div id="emptyState" class="empty-state" style="display: none;">
+          <h2>No Colors Found</h2>
+          <p>The colors collection is empty. Add some colors to your Firestore database to see them here!</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      // Import Firebase modules
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+      import { getFirestore, collection, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+      // Your Firebase configuration
+      // TODO: Replace with your actual Firebase config from Firebase Console
+      const firebaseConfig = {
+        apiKey: "AIzaSyAjvS6ttnINuxis-8ZQKtA7Kgg4SMdz0Qw",
+        authDomain: "personalwebsite-hunter.firebaseapp.com",
+        projectId: "personalwebsite-hunter",
+        storageBucket: "personalwebsite-hunter.firebasestorage.app",
+        messagingSenderId: "485512046187",
+        appId: "1:485512046187:web:b6f6ad7d56e36a78c6732e"
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      // Get references to DOM elements
+      const loadingEl = document.getElementById('loading');
+      const errorEl = document.getElementById('error');
+      const colorsGridEl = document.getElementById('colorsGrid');
+      const emptyStateEl = document.getElementById('emptyState');
+
+      // Function to display a color card
+      function createColorCard(colorData, docId) {
+        const card = document.createElement('div');
+        card.className = 'color-card';
+        
+        // Get color value - support different field names
+        const colorValue = colorData.color || colorData.hex || colorData.value || colorData.code || '#000000';
+        const colorName = colorData.name || docId || 'Unnamed Color';
+        
+        card.innerHTML = `
+          <div class="color-preview" style="background-color: ${colorValue};"></div>
+          <div class="color-info">
+            <h3>${colorName}</h3>
+            <p><strong>Color Code:</strong></p>
+            <div class="color-value">${colorValue}</div>
+            ${colorData.description ? `<p style="margin-top: 10px;"><strong>Description:</strong> ${colorData.description}</p>` : ''}
+            ${colorData.category ? `<p><strong>Category:</strong> ${colorData.category}</p>` : ''}
+          </div>
+        `;
+        
+        return card;
+      }
+
+      // Function to display colors
+      function displayColors(querySnapshot) {
+        loadingEl.style.display = 'none';
+        colorsGridEl.innerHTML = '';
+        
+        if (querySnapshot.empty) {
+          emptyStateEl.style.display = 'block';
+          return;
+        }
+        
+        emptyStateEl.style.display = 'none';
+        
+        querySnapshot.forEach((doc) => {
+          const colorCard = createColorCard(doc.data(), doc.id);
+          colorsGridEl.appendChild(colorCard);
+        });
+      }
+
+      // Function to handle errors
+      function handleError(error) {
+        console.error("Error loading colors:", error);
+        loadingEl.style.display = 'none';
+        errorEl.style.display = 'block';
+        errorEl.textContent = `Error loading colors: ${error.message}. Please check your Firebase configuration and Firestore rules.`;
+      }
+
+      // Load colors from Firestore with real-time updates
+      try {
+        const colorsRef = collection(db, 'colors');
+        
+        // Set up real-time listener
+        onSnapshot(colorsRef, 
+          (querySnapshot) => {
+            displayColors(querySnapshot);
+          },
+          (error) => {
+            handleError(error);
+          }
+        );
+      } catch (error) {
+        handleError(error);
+      }
+    </script>
+  </body>
+</html>
+
