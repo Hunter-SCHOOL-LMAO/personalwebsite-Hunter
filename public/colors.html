@@ -179,6 +179,187 @@
         font-size: 18px;
       }
 
+      /* Add Color Button */
+      .add-color-btn {
+        background-color: #212315;
+        color: #eceee2;
+        border: none;
+        padding: 15px 30px;
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        display: block;
+        margin: 0 auto 30px;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+
+      .add-color-btn:hover {
+        background-color: #333;
+        transform: scale(1.05);
+      }
+
+      /* Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        overflow: auto;
+      }
+
+      .modal.show {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-content {
+        background-color: white;
+        padding: 30px;
+        border: 3px solid #212315;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+      }
+
+      .modal-header h2 {
+        font-size: 28px;
+        color: #212315;
+        margin: 0;
+      }
+
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 32px;
+        color: #212315;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+      }
+
+      .close-btn:hover {
+        color: #666;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #212315;
+        font-size: 16px;
+      }
+
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #212315;
+        border-radius: 6px;
+        font-size: 16px;
+        font-family: inherit;
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #636B2F;
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      .color-input-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .color-input-group input[type="color"] {
+        width: 80px;
+        height: 50px;
+        padding: 5px;
+        cursor: pointer;
+      }
+
+      .color-input-group input[type="text"] {
+        flex: 1;
+      }
+
+      .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+      }
+
+      .btn {
+        flex: 1;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+      }
+
+      .btn-primary {
+        background-color: #212315;
+        color: #eceee2;
+      }
+
+      .btn-primary:hover {
+        background-color: #333;
+        transform: translateY(-2px);
+      }
+
+      .btn-primary:disabled {
+        background-color: #999;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-secondary {
+        background-color: #ddd;
+        color: #212315;
+      }
+
+      .btn-secondary:hover {
+        background-color: #ccc;
+        transform: translateY(-2px);
+      }
+
+      .success-message {
+        background-color: #4CAF50;
+        color: white;
+        padding: 15px;
+        border-radius: 6px;
+        text-align: center;
+        margin-bottom: 20px;
+        display: none;
+      }
+
       /* Responsive Design */
       @media (max-width: 768px) {
         nav ul {
@@ -220,7 +401,9 @@
     <main>
       <div class="container">
         <h1>Colors Database</h1>
-        <p class="intro">Displaying colors from Firestore collection</p>
+        <p class="intro">Colors from the collection</p>
+        
+        <button class="add-color-btn" id="addColorBtn">+ Add New Color</button>
         
         <div id="loading" class="loading">Loading colors...</div>
         <div id="error" class="error" style="display: none;"></div>
@@ -232,11 +415,55 @@
       </div>
     </main>
 
+    <!-- Add Color Modal -->
+    <div id="addColorModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Add New Color</h2>
+          <button class="close-btn" id="closeModalBtn">&times;</button>
+        </div>
+        
+        <div id="successMessage" class="success-message">
+          Color added successfully!
+        </div>
+
+        <form id="addColorForm">
+          <div class="form-group">
+            <label for="colorName">Color Name *</label>
+            <input type="text" id="colorName" name="colorName" required placeholder="e.g., Ocean Blue">
+          </div>
+
+          <div class="form-group">
+            <label for="colorValue">Color Value *</label>
+            <div class="color-input-group">
+              <input type="color" id="colorPicker" value="#3498db">
+              <input type="text" id="colorValue" name="colorValue" required placeholder="#3498db" pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="colorCategory">Category</label>
+            <input type="text" id="colorCategory" name="colorCategory" placeholder="e.g., Blues, Warm Tones">
+          </div>
+
+          <div class="form-group">
+            <label for="colorDescription">Description</label>
+            <textarea id="colorDescription" name="colorDescription" placeholder="Describe this color..."></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="submitBtn">Add Color</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script type="module">
       // Import Firebase modules
       import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-      import { getFirestore, collection, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+      import { getFirestore, collection, getDocs, onSnapshot, addDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
       
       // Import Firebase configuration from external config file (gitignored)
       import { firebaseConfig } from './config.js';
@@ -299,6 +526,106 @@
         errorEl.style.display = 'block';
         errorEl.textContent = `Error loading colors: ${error.message}. Please check your Firebase configuration and Firestore rules.`;
       }
+
+      // Modal and form handling
+      const modal = document.getElementById('addColorModal');
+      const addColorBtn = document.getElementById('addColorBtn');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const addColorForm = document.getElementById('addColorForm');
+      const colorPicker = document.getElementById('colorPicker');
+      const colorValueInput = document.getElementById('colorValue');
+      const submitBtn = document.getElementById('submitBtn');
+      const successMessage = document.getElementById('successMessage');
+
+      // Open modal
+      addColorBtn.addEventListener('click', () => {
+        modal.classList.add('show');
+        colorValueInput.value = colorPicker.value;
+      });
+
+      // Close modal function
+      function closeModal() {
+        modal.classList.remove('show');
+        addColorForm.reset();
+        successMessage.style.display = 'none';
+        colorPicker.value = '#3498db';
+        colorValueInput.value = '#3498db';
+      }
+
+      // Close modal on close button
+      closeModalBtn.addEventListener('click', closeModal);
+
+      // Close modal on cancel button
+      cancelBtn.addEventListener('click', closeModal);
+
+      // Close modal when clicking outside
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+
+      // Sync color picker with text input
+      colorPicker.addEventListener('input', (e) => {
+        colorValueInput.value = e.target.value.toUpperCase();
+      });
+
+      // Sync text input with color picker
+      colorValueInput.addEventListener('input', (e) => {
+        const value = e.target.value;
+        // Validate hex color format
+        if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+          colorPicker.value = value;
+        }
+      });
+
+      // Handle form submission
+      addColorForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Disable submit button
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Adding...';
+
+        try {
+          const colorData = {
+            name: document.getElementById('colorName').value.trim(),
+            color: document.getElementById('colorValue').value.trim().toUpperCase(),
+            category: document.getElementById('colorCategory').value.trim() || null,
+            description: document.getElementById('colorDescription').value.trim() || null,
+            createdAt: new Date().toISOString()
+          };
+
+          // Remove null fields
+          Object.keys(colorData).forEach(key => {
+            if (colorData[key] === null) {
+              delete colorData[key];
+            }
+          });
+
+          // Add to Firestore
+          const colorsRef = collection(db, 'colors');
+          await addDoc(colorsRef, colorData);
+
+          // Show success message
+          successMessage.style.display = 'block';
+          addColorForm.reset();
+          
+          // Close modal after delay
+          setTimeout(() => {
+            closeModal();
+          }, 1500);
+
+        } catch (error) {
+          console.error("Error adding color:", error);
+          alert(`Error adding color: ${error.message}`);
+        } finally {
+          // Re-enable submit button
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Add Color';
+        }
+      });
 
       // Load colors from Firestore with real-time updates
       try {
