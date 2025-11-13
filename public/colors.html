@@ -237,17 +237,9 @@
       // Import Firebase modules
       import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
       import { getFirestore, collection, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
-      // Your Firebase configuration
-      // TODO: Replace with your actual Firebase config from Firebase Console
-      const firebaseConfig = {
-        apiKey: "AIzaSyAjvS6ttnINuxis-8ZQKtA7Kgg4SMdz0Qw",
-        authDomain: "personalwebsite-hunter.firebaseapp.com",
-        projectId: "personalwebsite-hunter",
-        storageBucket: "personalwebsite-hunter.firebasestorage.app",
-        messagingSenderId: "485512046187",
-        appId: "1:485512046187:web:b6f6ad7d56e36a78c6732e"
-      };
+      
+      // Import Firebase configuration from external config file (gitignored)
+      import { firebaseConfig } from './config.js';
 
       // Initialize Firebase
       const app = initializeApp(firebaseConfig);
